@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="title" content="RoboSnap: One-Shot Real-to-Sim Scene Generation for Generalizable Robot Learning and Evaluation">
+  <meta name="description" content="RoboSnap reconstructs simulation-ready robot manipulation scenes from a single RGB image, enabling trajectory replay, synthetic data generation, robustness augmentation, and sim-real policy evaluation.">
+  <meta name="keywords" content="robot learning, real-to-sim, simulation, DROID-Sim, robot manipulation, policy evaluation, synthetic data generation">
+  <meta name="author" content="Shujie Zhang, Jingkun Yi, Weipeng Zhong, Zirui Zhou, Yangkun Zhu, Hanqing Wang, Xudong Xu, Weinan Zhang, Chunhua Shen">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RoboSnap">
+  <meta property="og:title" content="RoboSnap: One-Shot Real-to-Sim Scene Generation for Generalizable Robot Learning and Evaluation">
+  <meta property="og:description" content="A single-image real-to-sim framework that reconstructs reusable simulation scenes for robot learning and evaluation.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="RoboSnap: One-Shot Real-to-Sim Scene Generation">
+  <meta name="twitter:description" content="One-shot real-to-sim scene generation for robot learning and evaluation.">
+  <meta name="citation_title" content="RoboSnap: One-Shot Real-to-Sim Scene Generation for Generalizable Robot Learning and Evaluation">
+  <meta name="citation_author" content="Zhang, Shujie">
+  <meta name="citation_author" content="Yi, Jingkun">
+  <meta name="citation_author" content="Zhong, Weipeng">
+  <meta name="citation_author" content="Zhou, Zirui">
+  <meta name="citation_author" content="Zhu, Yangkun">
+  <meta name="citation_author" content="Wang, Hanqing">
+  <meta name="citation_author" content="Xu, Xudong">
+  <meta name="citation_author" content="Zhang, Weinan">
+  <meta name="citation_author" content="Shen, Chunhua">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_pdf_url" content="static/robosnap/pdfs/robosnap_paper.pdf">
+  <meta name="theme-color" content="#6F8F4E">
+
+  <title>RoboSnap</title>
+
+  <link rel="icon" type="image/svg+xml" href="image-2.svg?v=20260703-icon-clean2">
+  <link rel="alternate icon" type="image/png" sizes="512x512" href="static/images/favicon.png?v=20260703-icon-clean2">
+  <link rel="apple-touch-icon" href="static/images/favicon.png?v=20260703-icon-clean2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;family=Roboto+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="static/css/index.css?v=20260706-visitor-map">
+
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/index.js?v=20260706-sim-real-slider"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "RoboSnap: One-Shot Real-to-Sim Scene Generation for Generalizable Robot Learning and Evaluation",
+    "description": "RoboSnap converts a single RGB image into a layered, physically refined, simulation-ready scene for robot learning and evaluation.",
+    "author": [
+      {"@type": "Person", "name": "Shujie Zhang"},
+      {"@type": "Person", "name": "Jingkun Yi"},
+      {"@type": "Person", "name": "Weipeng Zhong"},
+      {"@type": "Person", "name": "Zirui Zhou"},
+      {"@type": "Person", "name": "Yangkun Zhu"},
+      {"@type": "Person", "name": "Hanqing Wang"},
+      {"@type": "Person", "name": "Xudong Xu"},
+      {"@type": "Person", "name": "Weinan Zhang"},
+      {"@type": "Person", "name": "Chunhua Shen"}
+    ],
+    "datePublished": "2026",
+    "keywords": ["real-to-sim", "robot manipulation", "simulation", "policy evaluation", "DROID-Sim"],
+    "isAccessibleForFree": true
+  }
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="progress-sidebar" aria-label="Page sections">
+    <a href="#hero" class="progress-item is-active" data-section-link="hero"><span></span>Intro</a>
+    <a href="#method" class="progress-item" data-section-link="method"><span></span>Method</a>
+    <a href="#scenes" class="progress-item" data-section-link="scenes"><span></span>Scenes</a>
+    <a href="#replay" class="progress-item" data-section-link="replay"><span></span>Replay</a>
+    <a href="#experiment-3" class="progress-item" data-section-link="experiment-3"><span></span>Data</a>
+    <a href="#experiment-4" class="progress-item" data-section-link="experiment-4"><span></span>Robust</a>
+    <a href="#experiment-5" class="progress-item" data-section-link="experiment-5"><span></span>Eval</a>
+    <a href="#resources" class="progress-item" data-section-link="resources"><span></span>Reference</a>
+  </nav>
+
+  <button class="scroll-to-top" type="button" aria-label="Scroll to top" title="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main">
+    <section class="hero" id="hero" data-observe-section>
+      <img class="hero-bg" src="static/robosnap/images/scenes/scene09_composed.png" alt="RoboSnap reconstructed robot manipulation scene">
+      <div class="hero-overlay"></div>
+        <div class="hero-inner">
+          <h1><span class="robosnap-shadow-text hero-logo-text">RoboSnap</span></h1>
+          <p class="hero-paper-title">One-Shot Real-to-Sim Scene Generation for Generalizable Robot Learning and Evaluation</p>
+          <div class="authors publication-authors">
+          <span><a href="https://hishujie.github.io/" target="_blank" rel="noopener noreferrer">Shujie Zhang</a><sup>1,4*</sup></span>
+          <span><a href="https://openreview.net/profile?id=%7Ejingkun_yi1" target="_blank" rel="noopener noreferrer">Jingkun Yi</a><sup>1,3*</sup></span>
+          <span><a href="https://github.com/PC1E-bit" target="_blank" rel="noopener noreferrer">Weipeng Zhong</a><sup>1,2</sup></span>
+          <span><a href="https://github.com/zr-zhou0o0" target="_blank" rel="noopener noreferrer">Zirui Zhou</a><sup>4</sup></span>
+          <span><a href="https://github.com/greyman-seu" target="_blank" rel="noopener noreferrer">Yangkun Zhu</a><sup>1</sup></span>
+          <span><a href="https://hanqingwangai.github.io/" target="_blank" rel="noopener noreferrer">Hanqing Wang</a><sup>1</sup></span>
+          <span><a href="https://sheldontsui.github.io/" target="_blank" rel="noopener noreferrer">Xudong Xu</a><sup>1&dagger;</sup></span>
+          <span><a href="https://wnzhang.net/" target="_blank" rel="noopener noreferrer">Weinan Zhang</a><sup>1,2</sup></span>
+          <span><a href="https://cshen.github.io" target="_blank" rel="noopener noreferrer">Chunhua Shen</a><sup>1,3</sup></span>
+        </div>
+        <div class="affiliations">
+          <span><sup>1</sup><a href="https://www.shlab.org.cn/" target="_blank" rel="noopener noreferrer">Shanghai AI Laboratory</a></span>
+          <span><sup>2</sup><a href="https://www.sjtu.edu.cn/" target="_blank" rel="noopener noreferrer">Shanghai Jiao Tong University</a></span>
+          <span><sup>3</sup><a href="https://www.zju.edu.cn/" target="_blank" rel="noopener noreferrer">Zhejiang University</a></span>
+          <span><sup>4</sup><a href="https://www.tsinghua.edu.cn/" target="_blank" rel="noopener noreferrer">Tsinghua University</a></span>
+        </div>
+        <div class="author-notes">
+          <span><sup>*</sup>Equal contribution.</span>
+          <span><sup>&dagger;</sup>Corresponding author.</span>
+        </div>
+        <div class="hero-actions" aria-label="Project resources">
+          <a class="button paper-button" href="static/robosnap/pdfs/robosnap_paper.pdf" target="_blank" rel="noopener noreferrer">Paper</a>
+          <a class="button video-button" href="https://youtu.be/82KTBSiscYM" target="_blank" rel="noopener noreferrer">Video</a>
+          <span class="button code-button is-disabled" aria-disabled="true">Code</span>
+          <span class="button dataset-button is-disabled" aria-disabled="true">Dataset <small>Coming soon</small></span>
+        </div>
+        <div class="hero-metrics" aria-label="Key paper results">
+          <div>
+            <strong class="robosnap-shadow-text">564</strong>
+            <span>DROID-Sim scenes</span>
+          </div>
+          <div>
+            <strong class="robosnap-shadow-text"><b class="metric-arrow" aria-hidden="true">⤴</b> +30.0%</strong>
+            <span>success-rate gain</span>
+          </div>
+          <div>
+            <strong class="robosnap-shadow-text">0.887</strong>
+            <span>real-sim correlation</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="teaser-band video-band">
+      <div class="container">
+        <p class="teaser-serif-title">From One RGB Image to Sim-Ready Real-to-Sim 3D Scene</p>
+        <figure class="wide-video">
+          <div class="video-poster" data-video-poster data-video-src="https://www.youtube-nocookie.com/embed/82KTBSiscYM?rel=0&amp;autoplay=1">
+            <button class="video-poster-button" type="button" aria-label="Play RoboSnap video">
+              <img src="static/robosnap/images/cover.png" alt="RoboSnap video cover">
+              <span class="video-play-icon" aria-hidden="true"><i class="fas fa-play"></i></span>
+            </button>
+          </div>
+          <figcaption>
+            With interactive foreground geometry and visual background constructed separately,<br><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes can be conveniently re-rendered, edited and reused for robot learning workflows.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section abstract-section" id="abstract" data-observe-section>
+      <div class="container narrow">
+        <p class="section-kicker">Abstract</p>
+        <h2 class="section-title">Real-to-Sim: From Digital Twins to Reusable Robot Learning Infrastructure.</h2>
+        <figure class="teaser-figure-card abstract-teaser-figure">
+          <img src="static/robosnap/images/figures/teaser-tight.png" alt="RoboSnap overview: DROID-Sim, trajectory replay, data generation, robustness, and sim-real correlation">
+        </figure>
+        <p class="lead">
+          Recovering real-world scenes as interactive simulation environments can enable generalizable robot learning and reproducible policy evaluation. However, constructing scenes that are both physically stable and visually faithful remains slow and expensive.
+        </p>
+        <p>
+          <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> builds a simulation-ready scene from one RGB image by separating collision-aware foreground assets from a re-renderable Gaussian-splat visual context.
+        </p>
+        <p>
+          Across DROID scenes and real-robot tasks, the recovered scenes support trajectory replay, synthetic data generation, and sim-real evaluation. We also introduce DROID-Sim, a companion dataset of 564 real-world scenes for real-to-sim robot learning.
+        </p>
+      </div>
+    </section>
+
+    <section class="section method-section" id="method" data-observe-section>
+      <div class="container">
+        <div class="section-heading">
+          <p class="section-kicker">Method</p>
+          <h2 class="section-title">Construct a Simulation-Ready Scene in 20 Minutes.</h2>
+        </div>
+
+        <figure class="method-figure">
+          <img src="static/images/method-cropped.png" alt="RoboSnap method pipeline">
+        </figure>
+
+        <div class="method-layer-band">
+        <div class="method-grid">
+          <article class="method-card method-card-primary">
+            <div class="method-card-heading">
+              <span class="step-label">1</span>
+              <h3>Layered Scene Reconstruction</h3>
+            </div>
+            <p>Starting from a single RGB image, <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> separates the scene into what the robot can physically interact with and what should remain as visual context. Objects and support surfaces are recovered as a physical layer, while the surrounding environment is completed and kept as a re-renderable visual layer.</p>
+            <p>Both layers are registered into the same world frame, so foreground assets can be simulated, moved, and checked for contact while the background continues to preserve the real deployment context. For articulated objects, <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> also supports splitting the reconstructed mesh into joint-aware parts.</p>
+          </article>
+        </div>
+
+        <div class="layer-stack-demo" data-layer-demo aria-label="Layered foreground assets and visual context">
+          <button class="layer-source-card" type="button" data-layer-trigger aria-expanded="false" aria-controls="layer-stack-output">
+            <img src="static/robosnap/images/original/scene09_original.png" alt="Original RGB scene for layered decomposition">
+            <span>Original RGB</span>
+            <em>Click here</em>
+          </button>
+          <div class="layer-stack-output" id="layer-stack-output" aria-hidden="true">
+            <div class="layer-stack-stage">
+              <figure class="layer-card layer-card-background">
+                <img src="static/robosnap/images/figures/method_background.png" alt="Recovered visual context background">
+                <figcaption>Visual context</figcaption>
+              </figure>
+              <figure class="layer-card">
+                <img src="static/robosnap/images/figures/method_object_5.png" alt="Recovered support surface layer">
+                <figcaption>Support surface</figcaption>
+              </figure>
+              <figure class="layer-card">
+                <img src="static/robosnap/images/figures/method_object_4.png" alt="Recovered foreground object layer">
+                <figcaption>Object mask</figcaption>
+              </figure>
+              <figure class="layer-card">
+                <img src="static/robosnap/images/figures/method_object_3.png" alt="Recovered foreground object layer">
+                <figcaption>Object mask</figcaption>
+              </figure>
+              <figure class="layer-card">
+                <img src="static/robosnap/images/figures/method_object_2.png" alt="Recovered foreground object layer">
+                <figcaption>Object mask</figcaption>
+              </figure>
+              <figure class="layer-card">
+                <img src="static/robosnap/images/figures/method_object_1.png" alt="Recovered foreground object layer">
+                <figcaption>Object mask</figcaption>
+              </figure>
+              <figure class="layer-card">
+                <img src="static/robosnap/images/figures/method_object_0.png" alt="Recovered foreground object layer">
+                <figcaption>Object mask</figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+
+        <div class="scene-pair-panel" aria-label="Paired 2D scene previews">
+          <div class="scene-pair-header">
+            <div class="scene-pair-controls">
+              <button type="button" data-scene-pair-prev aria-label="Previous scene preview"><i class="fas fa-chevron-left"></i></button>
+              <span id="scene-pair-counter">01 / 10</span>
+              <button type="button" data-scene-pair-next aria-label="Next scene preview"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="scene-pair-scroll" data-scene-pair-track tabindex="0">
+            <article class="scene-pair-card">
+              <header><h3>01</h3><p>Kitchen manipulation scene</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene01_original.png" alt="Scene 01 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene01_inpainted.png" alt="Scene 01 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene01_composed.png" alt="Scene 01 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>02</h3><p>Tabletop objects and bowl task</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene02_original.png" alt="Scene 02 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene02_inpainted.png" alt="Scene 02 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene02_composed.png" alt="Scene 02 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>03</h3><p>Striped-wall tabletop scene</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene03_original.png" alt="Scene 03 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene03_inpainted.png" alt="Scene 03 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene03_composed.png" alt="Scene 03 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>04</h3><p>Round-table office layout</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene05_original.png" alt="Scene 05 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene05_inpainted.png" alt="Scene 05 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene05_composed.png" alt="Scene 05 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>05</h3><p>Small tabletop mug scene</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene07_original.png" alt="Scene 07 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene07_inpainted.png" alt="Scene 07 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene07_composed.png" alt="Scene 07 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>06</h3><p>Cardboard-box workspace</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene09_original.png" alt="Scene 09 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene09_inpainted.png" alt="Scene 09 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene09_composed.png" alt="Scene 09 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>07</h3><p>Workshop layout</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene10_original.png" alt="Scene 10 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene10_inpainted.png" alt="Scene 10 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene10_composed.png" alt="Scene 10 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>08</h3><p>Herringbone-floor office table</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene12_original.png" alt="Scene 12 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene12_inpainted.png" alt="Scene 12 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene12_composed.png" alt="Scene 12 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>09</h3><p>Industrial workshop scene</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene14_original.png" alt="Scene 14 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene14_inpainted.png" alt="Scene 14 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene14_composed.png" alt="Scene 14 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+            <article class="scene-pair-card">
+              <header><h3>10</h3><p>Minimal room scene</p></header>
+              <div class="scene-pair-media">
+                <figure><img src="static/robosnap/images/original/scene15_original.png" alt="Scene 15 original RGB image"><figcaption>Original RGB</figcaption></figure>
+                <figure><img src="static/robosnap/images/inpainted/scene15_inpainted.png" alt="Scene 15 inpainted background"><figcaption>Inpainted background</figcaption></figure>
+                <figure><img src="static/robosnap/images/scenes/scene15_composed.png" alt="Scene 15 rendered simulation"><figcaption>Rendered simulation</figcaption></figure>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        </div>
+
+        <div class="method-refinement-band">
+          <article class="method-card method-card-refinement">
+            <div class="method-card-heading">
+              <span class="step-label">2</span>
+              <h3>Simulation-Ready Refinement</h3>
+            </div>
+            <p><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> turns generated assets into a scene that can <strong>directly run in a simulator</strong>. Because independent object pose estimates can float, interpenetrate, or collapse under gravity, refinement should improve <strong>physical stability</strong> while changing the recovered layout as little as possible.</p>
+            <p>The process first builds a <strong>physical scene graph</strong> that records which objects support others and which objects should remain in contact. <strong>Support roots</strong> stay fixed, while <strong>non-root objects</strong> are refined with an alternating SDF-physics procedure: the <strong>SDF phase</strong> removes penetrations and restores contact constraints, and the <strong>physics phase</strong> settles the updated layout under gravity.</p>
+            <p>Repeating these two phases produces <strong>stable poses</strong> for simulation without washing away the original scene structure, so replay and interaction happen on a layout that still matches the recovered real environment.</p>
+            <div class="method-refinement-videos" aria-label="Simulation-ready refinement process videos">
+              <figure class="method-refinement-video">
+                <video poster="static/robosnap/posters/method_refinement_process_01_ce791330.jpg" controls muted loop playsinline preload="metadata">
+                  <source src="static/robosnap/videos/method/refinement_process_01.mp4" type="video/mp4">
+                </video>
+                <figcaption>Example-1</figcaption>
+              </figure>
+              <figure class="method-refinement-video">
+                <video poster="static/robosnap/posters/method_refinement_process_02_e0c7309e.jpg" controls muted loop playsinline preload="metadata">
+                  <source src="static/robosnap/videos/method/refinement_process_02.mp4" type="video/mp4">
+                </video>
+                <figcaption>Example-2</figcaption>
+              </figure>
+            </div>
+          </article>
+        </div>
+
+        <div class="method-application-band">
+          <div class="method-application-inner">
+            <div class="method-application-kicker">
+              <span class="step-label">3</span>
+              <span>Applications</span>
+            </div>
+            <h3>Data Generation &amp; Policy Evaluation</h3>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section scenes-section" id="scenes" data-observe-section>
+      <div class="container">
+        <div class="section-heading">
+          <p class="section-kicker">DROID-Sim</p>
+          <h2 class="section-title">Preview of examples from DROID-Sim</h2>
+        </div>
+
+        <div class="viewer-layout">
+          <div class="viewer-panel">
+            <div class="viewer-toolbar" role="tablist" aria-label="Interactive Gaussian splat scenes">
+              <button class="splat-tab is-active" type="button" data-splat-scene="03" data-splat-title="1" data-splat-thumb="static/robosnap/images/original/scene03_original.png">1</button>
+              <button class="splat-tab" type="button" data-splat-scene="05" data-splat-title="2" data-splat-thumb="static/robosnap/images/original/scene05_original.png">2</button>
+              <button class="splat-tab" type="button" data-splat-scene="07" data-splat-title="3" data-splat-thumb="static/robosnap/images/original/scene07_original.png">3</button>
+              <button class="splat-tab" type="button" data-splat-scene="09" data-splat-title="4" data-splat-thumb="static/robosnap/images/original/scene09_original.png">4</button>
+              <button class="splat-tab" type="button" data-splat-scene="14" data-splat-title="5" data-splat-thumb="static/robosnap/images/original/scene14_original.png">5</button>
+              <button class="splat-tab" type="button" data-splat-scene="12" data-splat-title="6" data-splat-thumb="static/robosnap/images/original/scene12_original.png">6</button>
+            </div>
+            <div class="splat-viewer-stage">
+              <iframe id="splat-viewer-frame" title="Interactive Gaussian splat viewer" src="static/robosnap/viewers/scene-viewer.html?scene=03&amp;v=20260705-scene6-cuplight" loading="lazy"></iframe>
+              <figure class="splat-viewer-thumb">
+                <img id="splat-viewer-thumb-image" src="static/robosnap/images/original/scene03_original.png" alt="Original RGB reference 1">
+                <figcaption id="splat-viewer-thumb-label">1</figcaption>
+              </figure>
+            </div>
+            <div class="viewer-meta">
+              <strong id="splat-viewer-title">1</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section experiment-section replay-section" id="replay" data-observe-section>
+      <div class="container">
+        <div class="section-heading">
+          <h2 class="section-title"><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes support real trajectory replay in the simulation.</h2>
+          <p class="section-lead">By completing real trajectory replay, <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> tries to turn robot datasets into reusable simulation scene datasets for scalable and generalizable data augmentation.</p>
+        </div>
+
+        <div class="replay-showcase">
+          <article class="replay-case">
+            <div class="media-grid three replay-row">
+              <figure class="media-card"><video poster="static/robosnap/posters/replay_scene09_gt_bf4d43f4.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/replay/scene09_gt.mp4" type="video/mp4"></video><figcaption>Ground Truth</figcaption></figure>
+              <figure class="media-card accent"><video poster="static/robosnap/posters/replay_scene09_ours_5x_de04286c.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/replay/scene09_ours_5x.mp4" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> Success</figcaption></figure>
+              <figure class="media-card"><video poster="static/robosnap/posters/replay_rola_success_5x_3df02cdd.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/replay/rola_success_5x.mp4" type="video/mp4"></video><figcaption>RoLA Success</figcaption></figure>
+            </div>
+            <div class="media-grid three replay-row">
+              <figure class="media-card"><video poster="static/robosnap/posters/replay_scene10_gt_891a9625.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/replay/scene10_gt.mp4" type="video/mp4"></video><figcaption>Ground Truth</figcaption></figure>
+              <figure class="media-card accent"><video poster="static/robosnap/posters/replay_scene10_ours_35d8a0ef.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/replay/scene10_ours.mp4" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> Success</figcaption></figure>
+              <figure class="media-card warning"><video poster="static/robosnap/posters/replay_scene10_rola_fail_41c0dffd.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/replay/scene10_rola_fail.mp4" type="video/mp4"></video><figcaption>RoLA Failure</figcaption></figure>
+            </div>
+          </article>
+        </div>
+
+        <div class="replay-more-actions">
+          <button class="view-more-cases-btn" type="button" data-replay-more-button aria-expanded="false" aria-controls="replay-more-cases">View more cases</button>
+        </div>
+
+        <div class="replay-more-cases" id="replay-more-cases" data-replay-more-panel hidden>
+          <div class="media-grid three">
+            <figure class="media-card accent"><video poster="static/robosnap/posters/replay_scene02_ours_2f19eb72.jpg" controls muted loop playsinline preload="none"><source data-src="static/robosnap/videos/replay/scene02_ours.mp4" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> Case</figcaption></figure>
+            <figure class="media-card accent"><video poster="static/robosnap/posters/replay_scene03_ours_95370acf.jpg" controls muted loop playsinline preload="none"><source data-src="static/robosnap/videos/replay/scene03_ours.mp4" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> Case</figcaption></figure>
+            <figure class="media-card accent"><video poster="static/robosnap/posters/replay_scene15_ours_5ce90cbc.jpg" controls muted loop playsinline preload="none"><source data-src="static/robosnap/videos/replay/scene15_ours.mp4" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> Case</figcaption></figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section experiment-section" id="experiment-3" data-observe-section>
+      <div class="container">
+        <div class="section-heading">
+          <h2 class="section-title">Synthetic data generated in <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes improves real robot policy.</h2>
+          <p class="section-lead"><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> synthetic data improves real-world success rates most consistently at Ratio 2: +9.0 pts for pi0.5 and +13.4 pts for pi0 on average, with individual-task gains up to +30.0 pts.</p>
+        </div>
+
+        <div class="data-evidence">
+          <div class="data-task-grid">
+            <figure class="data-evidence-figure data-setting-card">
+              <img src="static/robosnap/images/figures/real_task_setting.png" alt="Real-world robot task settings">
+              <figcaption>Real-world task settings</figcaption>
+            </figure>
+            <article class="task-description-card" aria-label="Real-world task descriptions">
+              <h3>Real-world task descriptions</h3>
+              <div class="task-description-list">
+                <div class="task-row"><span>1.1</span><p>Put the bread into the blue plate.</p></div>
+                <div class="task-row"><span>1.2</span><p>Put the spoon in the pot.</p></div>
+                <div class="task-row"><span>2.1</span><p>Put the carrot on the desk into the bowl.</p></div>
+                <div class="task-row"><span>2.2</span><p>Put the pumpkin into the blue bowl.</p></div>
+                <div class="task-row"><span>2.3</span><p>Put the small hamburger in the plate.</p></div>
+                <div class="task-row is-long-horizon"><span>3.1</span><p>Open the white microwave.</p></div>
+                <div class="task-row is-long-horizon"><span>3.2</span><p>Put the bowl into the microwave.</p></div>
+                <div class="task-row"><span>4.1</span><p>Put the can into the white bin.</p></div>
+                <div class="task-row"><span>4.2</span><p>Close the laptop.</p></div>
+                <div class="task-row"><span>4.3</span><p>Hang the mug on the wooden shelf.</p></div>
+              </div>
+              <p class="task-note">Tasks 3.1 and 3.2 are consecutive stages of a long-horizon task.</p>
+            </article>
+          </div>
+          <div class="data-results-composite" aria-label="Real-world policy data results">
+            <img class="data-table-watermark" src="static/robosnap/images/figures/real_world_success_table.png" alt="" aria-hidden="true">
+            <div class="data-results-foreground">
+              <figure class="data-ratio-figure">
+                <img src="static/robosnap/images/figures/exp_3_fig_transparent.png" alt="Average real-world success rate across real-only and data mixture ratios">
+                <figcaption>Average success rates across data-mixture ratios</figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+
+        <div class="data-before-after-grid">
+          <figure class="data-before-after-item is-failure">
+            <h3>Before co-training <span>50% success rate</span></h3>
+            <video poster="static/robosnap/posters/data_scene04_before_fail_new_5x_9db009fb.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/scene04_before_fail_new_5x.mp4" type="video/mp4"></video>
+            <figcaption>Failure Case (5x speed)</figcaption>
+          </figure>
+          <figure class="data-before-after-item is-success">
+            <h3>After co-training <span>80% success rate</span></h3>
+            <video poster="static/robosnap/posters/data_scene04_after_success_new_5x_33afbdf6.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/scene04_after_success_new_5x.mp4" type="video/mp4"></video>
+            <figcaption>Success Case (5x speed)</figcaption>
+          </figure>
+        </div>
+
+        <h3 class="subsection-title data-aug-heading">Browse Data Generated in <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> Scenes Here</h3>
+        <div class="data-aug-slider" aria-label="Synthetic data augmentation demos">
+          <div class="data-aug-controls scene-pair-controls">
+            <button type="button" data-data-aug-prev aria-label="Previous data augmentation demos"><i class="fas fa-chevron-left"></i></button>
+            <span id="data-aug-counter">01 / 06</span>
+            <button type="button" data-data-aug-next aria-label="Next data augmentation demos"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="data-aug-track" data-data-aug-track tabindex="0">
+            <article class="data-aug-slide">
+              <div class="data-aug-pair">
+                <h4>Example 1</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task1_camera_0_e5fe0d7f.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task1/camera_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task1_camera_1_50376347.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task1/camera_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+              <div class="data-aug-pair">
+                <h4>Example 2</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task1_light_0_86731a78.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task1/light_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task1_light_1_80c70f2d.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task1/light_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+            </article>
+            <article class="data-aug-slide">
+              <div class="data-aug-pair">
+                <h4>Example 3</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task1_texture_0_99997c65.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task1/texture_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task1_texture_1_ba78eeac.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task1/texture_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+              <div class="data-aug-pair">
+                <h4>Example 4</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task2_camera_0_f20cd419.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task2/camera_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task2_camera_1_5f3fe5fc.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task2/camera_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+            </article>
+            <article class="data-aug-slide">
+              <div class="data-aug-pair">
+                <h4>Example 5</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task2_light_0_a00c4e02.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task2/light_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task2_light_1_51fb393e.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task2/light_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+              <div class="data-aug-pair">
+                <h4>Example 6</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task2_object_0_baa8edca.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task2/object_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task2_object_1_8d61ea1f.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task2/object_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+            </article>
+            <article class="data-aug-slide">
+              <div class="data-aug-pair">
+                <h4>Example 7</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task3_camera_0_e710e02e.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task3/camera_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task3_camera_1_18ac1fcb.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task3/camera_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+              <div class="data-aug-pair">
+                <h4>Example 8</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task3_light1_0_b3094313.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task3/light1_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task3_light1_1_29267130.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task3/light1_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+            </article>
+            <article class="data-aug-slide">
+              <div class="data-aug-pair">
+                <h4>Example 9</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task3_texture_0_7c0c9a4f.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task3/texture_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task3_texture_1_8f5b1959.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task3/texture_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+              <div class="data-aug-pair">
+                <h4>Example 10</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task4_camera_0_7c650630.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task4/camera_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task4_camera_1_4b8c7b8e.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task4/camera_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+            </article>
+            <article class="data-aug-slide">
+              <div class="data-aug-pair">
+                <h4>Example 11</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task4_light1_0_bb9c92ce.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task4/light1_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task4_light1_1_f9a63324.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task4/light1_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+              <div class="data-aug-pair">
+                <h4>Example 12</h4>
+                <div class="data-aug-videos">
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task4_texture_0_0274543e.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task4/texture_0.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                  <figure><video poster="static/robosnap/posters/data_data_aug_task4_texture_1_af3b4ef7.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/data/data_aug/task4/texture_1.mp4?v=20260706-dataaug-refresh" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section experiment-section" id="experiment-4" data-observe-section>
+      <div class="container">
+        <div class="section-heading">
+          <h2 class="section-title">Augmented synthetic data from <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes improves real-world robustness.</h2>
+          <p class="section-lead">Across six real-world perturbations, sim-real co-training with <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes reduces average policy degradation from 13% to 8%.</p>
+        </div>
+
+        <div class="robust-evidence-layout">
+          <figure class="robust-summary-figure">
+            <img src="static/robosnap/images/figures/exp_robust.png" alt="Performance degradation under six real-world perturbations">
+            <figcaption>Real-sim co-training reduces average degradation<br>from 13% to 8% across six perturbations.</figcaption>
+          </figure>
+
+          <div class="robust-rollout-slider" aria-label="Successful rollouts under real-world perturbations">
+            <div class="robust-rollout-header">
+              <h3>Successful rollouts of Ratio 2 policy under real-world perturbations</h3>
+              <div class="robust-rollout-controls scene-pair-controls">
+                <button type="button" data-robust-rollout-prev aria-label="Previous robust rollout"><i class="fas fa-chevron-left"></i></button>
+                <span id="robust-rollout-counter">01 / 03</span>
+                <button type="button" data-robust-rollout-next aria-label="Next robust rollout"><i class="fas fa-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="robust-rollout-track" data-robust-rollout-track tabindex="0">
+              <article class="robust-rollout-slide">
+                <div class="robust-rollout-pair">
+                  <h4>Object Pose</h4>
+                  <div class="robust-rollout-videos">
+                    <figure><video poster="static/robosnap/posters/robust_object_pose_exterior_13726ed9.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/object_pose_exterior_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                    <figure><video poster="static/robosnap/posters/robust_object_pose_wrist_6ef0085f.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/object_pose_wrist_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                  </div>
+                </div>
+                <div class="robust-rollout-pair">
+                  <h4>Background</h4>
+                  <div class="robust-rollout-videos">
+                    <figure><video poster="static/robosnap/posters/robust_background_obj_a04fbf02.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/background_obj_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                    <figure><video poster="static/robosnap/posters/robust_background_wrist_44058019.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/background_wrist_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                  </div>
+                </div>
+              </article>
+              <article class="robust-rollout-slide">
+                <div class="robust-rollout-pair">
+                  <h4>Lighting</h4>
+                  <div class="robust-rollout-videos">
+                    <figure><video poster="static/robosnap/posters/robust_light_0ea0ff23.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/light_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                    <figure><video poster="static/robosnap/posters/robust_light_wrist_e6e68fe9.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/light_wrist_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                  </div>
+                </div>
+                <div class="robust-rollout-pair">
+                  <h4>Texture</h4>
+                  <div class="robust-rollout-videos">
+                    <figure><video poster="static/robosnap/posters/robust_texture_2c46b1af.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/texture_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                    <figure><video poster="static/robosnap/posters/robust_texture_wrist_d96c3036.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/texture_wrist_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                  </div>
+                </div>
+              </article>
+              <article class="robust-rollout-slide">
+                <div class="robust-rollout-pair">
+                  <h4>Camera Pose</h4>
+                  <div class="robust-rollout-videos">
+                    <figure><video poster="static/robosnap/posters/robust_camera_pose_h264_a2da81dd.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/camera_pose_h264_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                    <figure><video poster="static/robosnap/posters/robust_camera_wrist_h264_43649e65.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/camera_wrist_h264_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                  </div>
+                </div>
+                <div class="robust-rollout-pair">
+                  <h4>Initial State</h4>
+                  <div class="robust-rollout-videos">
+                    <figure><video poster="static/robosnap/posters/robust_initial_state_bd56f931.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/initial_state_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Exterior</figcaption></figure>
+                    <figure><video poster="static/robosnap/posters/robust_initial_state_wrist_17d03950.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/robust/initial_state_wrist_5x.mp4?v=20260706-robust-5x" type="video/mp4"></video><figcaption>Wrist</figcaption></figure>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="robust-speed-note">5x speed</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section experiment-section" id="experiment-5" data-observe-section>
+      <div class="container">
+        <div class="section-heading">
+          <h2 class="section-title"><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes can act as a policy evaluation harness.</h2>
+          <p class="section-lead"><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> reports Pearson correlation r = <span class="robosnap-shadow-text compact-shadow">0.887</span> and MMRV = 0.0066 between real-world and simulation success rates for real-only fine-tuned pi0.5 policies.</p>
+          <p class="section-lead secondary-lead">This suggests that simulation scenes recovered from a single image can capture meaningful visual, semantic, and task-difficulty dynamics.</p>
+        </div>
+
+        <h3 class="subsection-title sim-real-heading">Real-only fine-tuned policy rollouts in real-world and <span class="robosnap-shadow-text compact-shadow">RoboSnap</span> scenes</h3>
+
+        <div class="sim-real-slider" aria-label="Paired real-world and RoboSnap simulation policy evaluation examples">
+          <div class="sim-real-controls scene-pair-controls">
+            <button type="button" data-sim-real-prev aria-label="Previous sim-real example"><i class="fas fa-chevron-left"></i></button>
+            <span id="sim-real-counter">01 / 04</span>
+            <button type="button" data-sim-real-next aria-label="Next sim-real example"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="sim-real-track" data-sim-real-track tabindex="0">
+            <article class="sim-real-slide">
+              <div class="sim-real-pair">
+                <figure><video poster="static/robosnap/posters/sim_real_scene01_real_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene01_real_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption>Real-world rollout</figcaption></figure>
+                <figure><video poster="static/robosnap/posters/sim_real_scene01_sim_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene01_sim_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> simulation rollout</figcaption></figure>
+              </div>
+            </article>
+            <article class="sim-real-slide">
+              <div class="sim-real-pair">
+                <figure><video poster="static/robosnap/posters/sim_real_scene02_real_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene02_real_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption>Real-world rollout</figcaption></figure>
+                <figure><video poster="static/robosnap/posters/sim_real_scene02_sim_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene02_sim_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> simulation rollout</figcaption></figure>
+              </div>
+            </article>
+            <article class="sim-real-slide">
+              <div class="sim-real-pair">
+                <figure><video poster="static/robosnap/posters/sim_real_scene03_real_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene03_real_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption>Real-world rollout</figcaption></figure>
+                <figure><video poster="static/robosnap/posters/sim_real_scene03_sim_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene03_sim_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> simulation rollout</figcaption></figure>
+              </div>
+            </article>
+            <article class="sim-real-slide">
+              <div class="sim-real-pair">
+                <figure><video poster="static/robosnap/posters/sim_real_scene04_real_successful_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene04_real_successful_h264_5x.mp4?v=20260706-sim-real-successful-real" type="video/mp4"></video><figcaption>Real-world rollout</figcaption></figure>
+                <figure><video poster="static/robosnap/posters/sim_real_scene04_sim_h264.jpg" controls muted loop playsinline preload="metadata"><source src="static/robosnap/videos/sim-real/scene04_sim_h264_5x.mp4?v=20260706-sim-real-5x" type="video/mp4"></video><figcaption><span class="robosnap-shadow-text compact-shadow">RoboSnap</span> simulation rollout</figcaption></figure>
+              </div>
+            </article>
+          </div>
+          <div class="sim-real-speed-note">5x speed</div>
+        </div>
+
+        <figure class="sim-real-diagnostic-figure">
+          <img src="static/robosnap/images/figures/sim_real_behavior_diagnostics.png" alt="Behavior-space sim-real comparison of end-effector displacement trajectories and joint increment distributions">
+          <figcaption>Behavior-space diagnostics compare end-effector trajectories and<br>executed joint-increment distributions between real and simulated rollouts.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section resources-section" id="resources" data-observe-section>
+      <div class="container narrow">
+        <p class="thanks-message">Thanks for reading here!</p>
+        <div class="visitor-map" aria-label="Visitor map">
+          <script type="text/javascript" id="mapmyvisitors" src="//mapmyvisitors.com/map.js?d=Bmf3uV-px8CXo7aNLJ4Ld6KWZ3J6AAbXCLJGtFZq2BM&amp;cl=ffffff&amp;w=a"></script>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="BibTeX">
+      <div class="container narrow">
+        <div class="bibtex-header">
+          <h2 class="section-title">BibTeX</h2>
+          <button class="copy-bibtex-btn" type="button" data-copy-target="bibtex-code">
+            <i class="fas fa-copy"></i>
+            <span>Copy</span>
+          </button>
+        </div>
+        <pre id="bibtex-code"><code>@misc{zhang2026robosnap,
+  title={RoboSnap: One-Shot Real-to-Sim Scene Generation for Generalizable Robot Learning and Evaluation},
+  author={Shujie Zhang and Jingkun Yi and Weipeng Zhong and Zirui Zhou and Yangkun Zhu and Hanqing Wang and Xudong Xu and Weinan Zhang and Chunhua Shen},
+  year={2026}
+}</code></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        Page structure adapted from common academic project pages, with layout references from
+        <a href="https://polaris-evals.github.io/" target="_blank" rel="noopener noreferrer">PolaRiS</a>
+        and
+        <a href="https://research.nvidia.com/labs/gear/simfoundry/" target="_blank" rel="noopener noreferrer">SimFoundry</a>.
+      </p>
+    </div>
+  </footer>
+</body>
+
+</html>

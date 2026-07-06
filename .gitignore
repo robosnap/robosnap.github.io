@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+.cache/
+npm-debug.log*
+
+# Local preview copies of heavy Gaussian splat files.
+# Host these externally for GitHub Pages and set ROBOSNAP_GAUSSIAN_BASE in
+# static/robosnap/viewers/asset-config.js.
+static/robosnap/gaussian/*.ply

@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "name": "scene03_splats.ply",
+      "size": 130560417,
+      "sha256": "3a4977b3c45a741d171f44957419370acd6f60003f2839269d2b60efe256a124"
+    },
+    {
+      "name": "scene05_splats.ply",
+      "size": 130560417,
+      "sha256": "1da8e6ce21f83bfe125f341043c5678d3b88ad0a66822ee244b9fc775e62fa22"
+    },
+    {
+      "name": "scene07_splats.ply",
+      "size": 130560417,
+      "sha256": "eafc9c7f33f6f98541c7f92d82c6c132a510b19ca67887d4d6493c8650331565"
+    },
+    {
+      "name": "scene09_splats.ply",
+      "size": 130560417,
+      "sha256": "a414888e4b1faefedd5e4b92cce00cca0c013af9642aefb3bcecb3c485da2bba"
+    },
+    {
+      "name": "scene10_splats.ply",
+      "size": 130560417,
+      "sha256": "8bd07734a5bd90ba21bb167c38419baa10daf3d605c3e6e657d675c1fb95566c"
+    },
+    {
+      "name": "scene12_splats.ply",
+      "size": 130560417,
+      "sha256": "7c591d0ae2efb7cd0e7ff2114e0390fecfb61dc4d12156fd85bfcb499d2f5607"
+    },
+    {
+      "name": "scene14_splats.ply",
+      "size": 130560417,
+      "sha256": "a2f6b5e438aa5c8f799ac8d671a23db44d8dd3e559cb8472bd2385ecff09002f"
+    }
+  ]
+}
+
