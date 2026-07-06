@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://robosnap.github.io/sitemap.xml
