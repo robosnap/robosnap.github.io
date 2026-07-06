@@ -1,0 +1,90 @@
+{
+  "scene": "10",
+  "camera_position": [
+    -8.3e-05,
+    -1.369402,
+    -0.746625
+  ],
+  "camera_look_at": [
+    -0.064639,
+    -0.685467,
+    0.891587
+  ],
+  "bounds_center": [
+    -0.039893,
+    -0.49192,
+    0.797433
+  ],
+  "fov": 1.248046,
+  "foreground_objects": [
+    "object_00_geometry_0",
+    "object_01_geometry_0",
+    "object_02_geometry_0"
+  ],
+  "foreground_faces": 52150,
+  "foreground_vertices": 31127,
+  "lights": [
+    {
+      "name": "Area",
+      "type": "AREA",
+      "position": [
+        0.429745,
+        -1.814606,
+        0.744903
+      ],
+      "rotation": [
+        1.639166,
+        0.419147,
+        0.447878
+      ],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "energy": 60.0,
+      "size": 1.0
+    },
+    {
+      "name": "Area.001",
+      "type": "AREA",
+      "position": [
+        -1.126253,
+        -1.792442,
+        0.821372
+      ],
+      "rotation": [
+        1.582544,
+        0.463768,
+        -0.655795
+      ],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "energy": 60.0,
+      "size": 1.0
+    },
+    {
+      "name": "Light",
+      "type": "POINT",
+      "position": [
+        4.076245,
+        1.005454,
+        5.903862
+      ],
+      "rotation": [
+        0.650328,
+        0.055217,
+        1.866391
+      ],
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "energy": 1000.0
+    }
+  ]
+}
