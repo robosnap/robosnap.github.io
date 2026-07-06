@@ -144,7 +144,7 @@ pre {
 }
 
 .section-heading {
-  margin-bottom: 2.1rem;
+  margin-bottom: 2.75rem;
 }
 
 .section-heading.compact {
@@ -198,7 +198,7 @@ pre {
 }
 
 .section-title + .section-lead {
-  margin-top: 3.5rem;
+  margin-top: 4.55rem;
 }
 
 .section-lead + .section-lead {
@@ -647,7 +647,7 @@ pre {
 
 .abstract-teaser-figure {
   width: 78%;
-  margin: 4rem auto 1.55rem;
+  margin: 5.2rem auto 1.55rem;
 }
 
 .abstract-teaser-figure img {
@@ -773,7 +773,7 @@ figcaption,
 }
 
 #method .section-heading {
-  margin-bottom: 5rem;
+  margin-bottom: 6.5rem;
 }
 
 .method-figure {
@@ -1409,18 +1409,19 @@ figcaption,
 
 .viewer-load-note {
   width: min(94%, 760px);
-  margin: 1rem auto 0;
-  padding: 0.9rem 1.1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(111, 143, 78, 0.34);
-  background: linear-gradient(135deg, rgba(255, 218, 103, 0.34), rgba(136, 211, 185, 0.22));
-  color: #324225;
-  font-family: "Google Sans", "Noto Sans", Arial, sans-serif;
-  font-size: clamp(0.98rem, 1.55vw, 1.18rem);
+  margin: 1.05rem auto 0;
+  padding: 0;
+  color: var(--muted);
+  font-family: "RoboSnap Serif", Georgia, serif;
+  font-size: clamp(1.16rem, 1.55vw, 1.32rem);
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.25;
   text-align: center;
-  box-shadow: 0 14px 34px rgba(111, 143, 78, 0.13);
+}
+
+.viewer-load-note strong {
+  color: var(--accent);
+  font-weight: 900;
 }
 
 .scene-pair-panel {
@@ -1700,7 +1701,7 @@ figcaption,
 }
 
 #experiment-3 .section-title + .section-lead {
-  margin-top: 3.5rem;
+  margin-top: 4.55rem;
 }
 
 #experiment-4 .section-lead {
@@ -2407,7 +2408,7 @@ figcaption,
   display: flex;
   justify-content: center;
   width: min(100%, 320px);
-  margin: 3.5rem auto 0;
+  margin: 8.8rem auto 0;
 }
 
 .visitor-map iframe,
