@@ -1710,7 +1710,7 @@ figcaption,
 
 .data-evidence {
   width: var(--content-frame-width);
-  margin: 0 auto 1.35rem;
+  margin: 0 auto 3.2rem;
 }
 
 .data-task-grid {
@@ -1864,7 +1864,7 @@ figcaption,
 
 .data-results-composite {
   position: relative;
-  margin-top: 1.05rem;
+  margin-top: 3.4rem;
   padding: 0.45rem 0 1.55rem;
   border: 0;
   border-radius: 0;
@@ -1913,7 +1913,7 @@ figcaption,
 }
 
 .data-ratio-figure figcaption {
-  margin: 0.1rem auto 0;
+  margin: 1rem auto 0;
   padding: 0;
   color: var(--muted);
   font-family: "RoboSnap Serif", Georgia, serif;
@@ -1928,7 +1928,7 @@ figcaption,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  margin: 1.1rem auto 1rem;
+  margin: 3.2rem auto 1rem;
 }
 
 .data-before-after-item {
@@ -2392,15 +2392,15 @@ figcaption,
 
 .resources-section {
   background: var(--surface-blue);
-  padding-top: 10rem;
+  padding-top: 13.5rem;
 }
 
 .thanks-message {
   margin: 0;
   color: var(--ink);
   font-family: "Google Sans", "Noto Sans", Arial, sans-serif;
-  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
-  font-weight: 700;
+  font-size: clamp(1.65rem, 3.2vw, 2.4rem);
+  font-weight: 800;
   line-height: 1.18;
   text-align: center;
 }
@@ -2409,7 +2409,7 @@ figcaption,
   display: flex;
   justify-content: center;
   width: min(100%, 320px);
-  margin: 17.6rem auto 0;
+  margin: 24rem auto 0;
 }
 
 .visitor-map iframe,
