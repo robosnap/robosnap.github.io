@@ -406,8 +406,9 @@ pre {
 }
 
 .hero-bg {
-  object-fit: cover;
-  object-position: center;
+  background-image: url("../robosnap/images/scenes/scene09_composed.png");
+  background-size: cover;
+  background-position: center;
 }
 
 .hero-overlay {

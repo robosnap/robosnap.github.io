@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://robosnap.github.io/</loc>
     <lastmod>2026-07-07</lastmod>
+    <image:image>
+      <image:loc>https://robosnap.github.io/static/robosnap/images/cover.png</image:loc>
+      <image:title>RoboSnap project cover</image:title>
+      <image:caption>RoboSnap: From One RGB Image to Sim-Ready Real-to-Sim 3D Scene</image:caption>
+    </image:image>
     <priority>1.0</priority>
   </url>
 </urlset>
